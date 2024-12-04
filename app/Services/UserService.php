@@ -1,37 +1,60 @@
 <?php
-
 namespace App\Services;
 
-use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Interfaces\UserRepositoryInterface;
+use Exception;
 
 class UserService
 {
-    public function __construct(protected UserRepositoryInterface $userRepository)
+    protected $repository;
+
+    public function __construct(UserRepositoryInterface $repository)
     {
+        $this->repository = $repository;
     }
 
     public function all()
     {
-        return $this->userRepository->all();
+        try {
+            return $this->repository->all();
+        } catch (Exception $e) {
+            throw new Exception('Failed to retrieve users: ' . $e->getMessage());
+        }
     }
 
     public function create(array $data)
     {
-        return $this->userRepository->create($data);
+        try {
+            return $this->repository->create($data);
+        } catch (Exception $e) {
+            throw new Exception('Failed to create user: ' . $e->getMessage());
+        }
     }
 
     public function update(array $data, int $id)
     {
-        return $this->userRepository->update($data, $id);
+        try {
+            return $this->repository->update($data, $id);
+        } catch (Exception $e) {
+            throw new Exception('Failed to update user: ' . $e->getMessage());
+        }
     }
 
     public function delete(int $id)
     {
-        return $this->userRepository->delete($id);
+        try {
+            return $this->repository->delete($id);
+        } catch (Exception $e) {
+            throw new Exception('Failed to delete user: ' . $e->getMessage());
+        }
     }
 
     public function find(int $id)
     {
-        return $this->userRepository->find($id);
+        try {
+            return $this->repository->find($id);
+        } catch (Exception $e) {
+            throw new Exception('User not found: ' . $e->getMessage());
+        }
     }
 }

@@ -4,48 +4,78 @@ namespace App\Http\Controllers;
 
 use App\Services\UserService;
 use Illuminate\Http\Request;
+use Illuminate\Http\JsonResponse;
 
 class UserController extends Controller
 {
-    public function __construct(protected UserService $userService)
+    protected $service;
+
+    public function __construct(UserService $service)
     {
+        $this->service = $service;
     }
 
-    public function index()
+    public function index(): JsonResponse
     {
-        return response()->json($this->userService->all());
+        try {
+            $users = $this->service->all();
+            return response()->json($users);
+        } catch (\Exception $e) {
+            dd($e);
+            // return response()->json(['error' => 'Failed to retrieve users'], 500);
+        }
     }
 
-    public function store(Request $request)
+    public function store(Request $request): JsonResponse
     {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|unique:users,email',
-            'password' => 'required|string|min:8',
-        ]);
+        try {
+            $data = $request->validate([
+                'name' => 'required|string|max:255',
+                'email' => 'required|email|unique:users,email',
+                'password' => 'required|string|min:8',
+            ]);
 
-        return response()->json($this->userService->create($data), 201);
+            $user = $this->service->create($data);
+            return response()->json($user, 201);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to create user'], 500);
+        }
     }
 
-    public function show($id)
+    public function show($id): JsonResponse
     {
-        return response()->json($this->userService->find($id));
+        try {
+            $user = $this->service->find($id);
+            return response()->json($user);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'User not found'], 404);
+        }
     }
 
-    public function update(Request $request, $id)
+    public function update(Request $request, $id): JsonResponse
     {
-        $data = $request->validate([
-            'name' => 'sometimes|string|max:255',
-            'email' => 'sometimes|email|unique:users,email,' . $id,
-            'password' => 'sometimes|string|min:8',
-        ]);
+        try {
+            $data = $request->validate([
+                'name' => 'sometimes|string|max:255',
+                'email' => 'sometimes|email|unique:users,email,'.$id,
+                'password' => 'sometimes|string|min:8',
+            ]);
 
-        return response()->json($this->userService->update($data, $id));
+            $user = $this->service->update($data, $id);
+            return response()->json($user);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to update user'], 500);
+        }
     }
 
-    public function destroy($id)
+    public function destroy($id): JsonResponse
     {
-        $this->userService->delete($id);
-        return response()->json(['message' => 'User deleted successfully'], 200);
+        try {
+            $this->service->delete($id);
+            return response()->json(['message' => 'User deleted successfully'], 200);
+        } catch (\Exception $e) {
+            return response()->json(['error' => 'Failed to delete user'], 500);
+        }
     }
 }
+
